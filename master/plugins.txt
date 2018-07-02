@@ -1,3 +1,5 @@
+blueocean:latest
+blueocean-pipeline-editor:latest
 javadoc:latest
 jdk-tool:latest
 jquery-detached:latest
