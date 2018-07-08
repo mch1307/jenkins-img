@@ -1,5 +1,8 @@
 blueocean:latest
 blueocean-pipeline-editor:latest
+git:latest
+github:latest
+github-oauth:latest
 javadoc:latest
 jdk-tool:latest
 jquery-detached:latest
@@ -7,6 +10,7 @@ junit:latest
 kerberos-sso:latest
 ldap:latest
 maven-plugin:latest
+matrix-auth
 scm-api:latest
 script-security:latest
 ssh-agent:latest
@@ -14,4 +18,4 @@ ssh-credentials:latest
 ssh-slaves:latest
 timestamper:latest
 token-macro:latest
-
+yet-another-docker-plugin:latest
