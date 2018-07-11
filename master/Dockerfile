@@ -2,6 +2,8 @@ FROM jenkins/jenkins:lts-alpine
 LABEL maintainer=mch1307@gmail.com 
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 ENV UCPURL="https://ucp.csnet.me" 
+ENV UCPUSER=$UCPUSER
+ENV UCPPWD=$UCPPWD
 
 USER root
 
@@ -10,7 +12,11 @@ RUN (curl -sk ${UCPURL}/ca > /usr/local/share/ca-certificates/ucp.crt && \
     cp /usr/local/share/ca-certificates/ucp.crt $JAVA_HOME/jre/lib/security/ucp.crt && \
     cd $JAVA_HOME/jre/lib/security && \
     keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ucpcert -file ucp.crt && \
-    rm -rf /home/jenkins)
+    rm -rf /home/jenkins) && \
+    AUTHTOKEN=$(curl -sk -d '{"username":"$UCPUSER","password":"${UCPPWD}"}' https://${UCPURL}/auth/login | jq -r .auth_token) && \
+    curl -k -H "Authorization: Bearer $AUTHTOKEN" https://${UCPURL}/api/clientbundle -o bundle.zip && \
+    unzip bundle.zip
+
 USER jenkins
 
 COPY *.groovy /usr/share/jenkins/ref/init.groovy.d/
