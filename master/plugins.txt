@@ -1,5 +1,6 @@
 blueocean:latest
 blueocean-pipeline-editor:latest
+credentials:latest
 git:latest
 github:latest
 github-oauth:latest
@@ -10,7 +11,7 @@ junit:latest
 kerberos-sso:latest
 ldap:latest
 maven-plugin:latest
-matrix-auth
+matrix-auth:latest
 scm-api:latest
 script-security:latest
 ssh-agent:latest
