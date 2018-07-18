@@ -1,4 +1,4 @@
-FROM dtr.csnet.me/dkradmin/jenkins:2.121.1
+FROM dtr.csnet.me/dkradmin/jenkins:2.121.2
 LABEL maintainer=mch1307@gmail.com 
 # Build: docker build . --build-arg UCPPWD=  --build-arg UCPUSER=  --build-arg UCPURL= --build-arg LDAP_GROUP=
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
@@ -13,15 +13,18 @@ USER root
 RUN yum install -y  \
         device-mapper-persistent-data \
         lvm2 \
+        openssl \
+        unzip \
         yum-utils && \
     yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
     yum -y install docker-ce
 
-RUN curl -sk https://${UCPURL}/ca > /etc/pki/ca-trust/source/anchors/ucp.crt && \
+RUN curl -sk https://${UCPURL}/ca > /etc/pki/ca-trust/source/anchors/ucp-ca.crt && \
     update-ca-trust extract && \
-    cp /etc/pki/ca-trust/source/anchors/ucp.crt $JAVA_HOME/jre/lib/security/ucp.crt && \
-    cd $JAVA_HOME/jre/lib/security && \
-    keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ucpcert -file ucp.crt
+    #cp /etc/pki/ca-trust/source/anchors/ucp-ca.crt $JAVA_HOME/jre/lib/security/ucp-ca.crt && \
+    #cd $JAVA_HOME/jre/lib/security && \
+    openssl x509 -in /etc/pki/ca-trust/source/anchors/ucp-ca.crt -inform pem -out ucp-ca.der -outform der && \
+    keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ucpcert -file ucp-ca.der
 
 USER jenkins
 
