@@ -1,4 +1,4 @@
-FROM jenkins/jenkins:lts-alpine
+FROM dtr.csnet.me/dkradmin/jenkins:2.121.1
 LABEL maintainer=mch1307@gmail.com 
 # Build: docker build . --build-arg UCPPWD=  --build-arg UCPUSER=  --build-arg UCPURL= --build-arg LDAP_GROUP=
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
@@ -10,9 +10,16 @@ ENV LDAP_GROUP=$LDAP_GROUP
 
 USER root
 
-RUN curl -sk https://${UCPURL}/ca > /usr/local/share/ca-certificates/ucp.crt && \
-    update-ca-certificates && \
-    cp /usr/local/share/ca-certificates/ucp.crt $JAVA_HOME/jre/lib/security/ucp.crt && \
+RUN yum install -y  \
+        device-mapper-persistent-data \
+        lvm2 \
+        yum-utils && \
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && \
+    yum -y install docker-ce
+
+RUN curl -sk https://${UCPURL}/ca > /etc/pki/ca-trust/source/anchors/ucp.crt && \
+    update-ca-trust extract && \
+    cp /etc/pki/ca-trust/source/anchors/ucp.crt $JAVA_HOME/jre/lib/security/ucp.crt && \
     cd $JAVA_HOME/jre/lib/security && \
     keytool -keystore cacerts -storepass changeit -noprompt -trustcacerts -importcert -alias ucpcert -file ucp.crt
 
