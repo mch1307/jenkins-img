@@ -1,7 +1,5 @@
 FROM centos:7.5.1804
 
-RUN yum -y update && yum -y install java-1.8.0-openjdk && yum -y clean all
-
 ARG user=jenkins
 ARG group=jenkins
 ARG uid=1000
@@ -16,7 +14,12 @@ ENV JENKINS_SLAVE_AGENT_PORT ${agent_port}
 # Jenkins is run with user `jenkins`, uid = 1000
 # If you bind mount a volume from the host or a data container,
 # ensure you use the same uid
-RUN mkdir -p $JENKINS_HOME \
+RUN yum -y update \ 
+  && yum -y install \
+   java-1.8.0-openjdk \
+   java-1.8.0-openjdk-devel \
+  && yum -y clean all \
+  && mkdir -p $JENKINS_HOME \
   && chown ${uid}:${gid} $JENKINS_HOME \
   && groupadd -g ${gid} ${group} \
   && useradd -d "$JENKINS_HOME" -u ${uid} -g ${gid} -m -s /bin/bash ${user}
@@ -40,14 +43,20 @@ COPY init.groovy /usr/share/jenkins/ref/init.groovy.d/tcp-slave-agent-port.groov
 
 # jenkins version being bundled in this docker image
 ARG JENKINS_VERSION
-ENV JENKINS_VERSION ${JENKINS_VERSION:-2.121.1}
+ENV JENKINS_VERSION ${JENKINS_VERSION:-2.121.2}
 
 # Can be used to customize where jenkins.war get downloaded from
 ARG JENKINS_URL=http://mirrors.jenkins.io/war-stable/${JENKINS_VERSION}/jenkins.war
 
+COPY jenkins-support /usr/local/bin/jenkins-support
+COPY jenkins.sh /usr/local/bin/jenkins.sh
+COPY tini-shim.sh /bin/tini
+
+
 # could use ADD but this one does not check Last-Modified header neither does it allow to control checksum
 # see https://github.com/docker/docker/issues/8331
-RUN curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
+RUN chmod +x /usr/local/bin/jenkins-support /usr/local/bin/jenkins.sh /bin/tini \
+  && curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
   && curl -fsSL ${JENKINS_URL}.sha256 -o /tmp/jenkins.war.sha \
   && echo "`cat /tmp/jenkins.war.sha | awk -F ' ' '{print $1}'`  /usr/share/jenkins/jenkins.war" | sha256sum -c -
 
@@ -66,9 +75,6 @@ ENV COPY_REFERENCE_FILE_LOG $JENKINS_HOME/copy_reference_file.log
 
 USER ${user}
 
-COPY jenkins-support /usr/local/bin/jenkins-support
-COPY jenkins.sh /usr/local/bin/jenkins.sh
-COPY tini-shim.sh /bin/tini
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/jenkins.sh"]
 
 # from a derived Dockerfile, can use `RUN plugins.sh active.txt` to setup /usr/share/jenkins/ref/plugins from a support bundle
