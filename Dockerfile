@@ -7,6 +7,7 @@ ARG gid=1000
 ARG http_port=8080
 ARG agent_port=50000
 ARG JENKINS_HOME=/var/jenkins_home
+ARG JENKINS_VERSION=2.121.2
 
 ENV JENKINS_HOME $JENKINS_HOME
 ENV JENKINS_SLAVE_AGENT_PORT ${agent_port}
@@ -51,11 +52,12 @@ ARG JENKINS_URL=http://mirrors.jenkins.io/war-stable/${JENKINS_VERSION}/jenkins.
 COPY jenkins-support /usr/local/bin/jenkins-support
 COPY jenkins.sh /usr/local/bin/jenkins.sh
 COPY tini-shim.sh /bin/tini
+COPY gvs /usr/local/bin/gvs
 
 
 # could use ADD but this one does not check Last-Modified header neither does it allow to control checksum
 # see https://github.com/docker/docker/issues/8331
-RUN chmod +x /usr/local/bin/jenkins-support /usr/local/bin/jenkins.sh /bin/tini \
+RUN chmod +x /usr/local/bin/jenkins-support /usr/local/bin/jenkins.sh /bin/tini /usr/local/bin/gvs\
   && curl -fsSL ${JENKINS_URL} -o /usr/share/jenkins/jenkins.war \
   && curl -fsSL ${JENKINS_URL}.sha256 -o /tmp/jenkins.war.sha \
   && echo "`cat /tmp/jenkins.war.sha | awk -F ' ' '{print $1}'`  /usr/share/jenkins/jenkins.war" | sha256sum -c -

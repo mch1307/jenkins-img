@@ -3,7 +3,15 @@ import jenkins.model.*
 import hudson.security.*
 
 def instance = Jenkins.getInstance()
-def env = System.getenv()
+
+Properties properties = new Properties()
+File propertiesFile = new File('/dev/shm/gvs')
+propertiesFile.withInputStream {
+    properties.load(it)
+}
+String mySecret = properties.key1
+
+//def env = System.getenv()
 String myGroup = new File('/tmp/ldap_group').text
 //String myGroup= env['LDAP_GROUP']
 def strategy = new GlobalMatrixAuthorizationStrategy()
