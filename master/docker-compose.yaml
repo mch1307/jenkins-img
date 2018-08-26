@@ -1,18 +1,23 @@
-version: '3.1'
+version: '3.3'
  
 services:
  
-  main:
-    image: vfarcic/jenkins
-    ports:
-      - 8080:8080
-      - 50000:50000
-    secrets:
-      - jenkins-user
-      - jenkins-pass
- 
-secrets:
-  jenkins-user:
-    external: true
-  jenkins-pass:
-    external: true
+  jenkinsMaster:
+    image: dtr.csnet.me/dkradmin/jenkins:2.138-master
+    networks:
+      - jenkins
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+      labels:
+        - com.docker.lb.hosts=jenkins.app.csnet.me
+        - com.docker.lb.port=8080
+        - com.docker.lb.network=jenkins
+
+networks:
+  jenkins:
+    attachable: true
